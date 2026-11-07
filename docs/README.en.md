@@ -373,6 +373,39 @@ row-level shared lock.
 Repositories must not call `commit()`. Unit of Work exclusively controls commits
 and rollbacks.
 
+## DTOs and Commands
+
+Use explicit types for application input and output:
+
+- `CommandBase` marks application use-case input
+- `DtoBase` marks data returned across the application boundary
+
+```python
+from alcedo import CommandBase, DtoBase
+from pydantic import Field
+
+
+class AccountCreateCommand(CommandBase):
+    name: str = Field(max_length=100)
+
+
+class AccountDto(DtoBase):
+    id: UUID
+    name: str
+    version: int
+```
+
+`CommandBase` rejects undeclared fields by default so unexpected input is not
+silently ignored. `DtoBase` enables `from_attributes` and can map a domain or ORM
+entity:
+
+```python
+dto = AccountDto.model_validate(account)
+```
+
+Commands should not be response models, and DTOs should not represent modifying
+use-case input.
+
 ## Unit of Work
 
 An application service receives `UnitOfWork` through its constructor and exposes

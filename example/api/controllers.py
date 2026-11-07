@@ -3,15 +3,14 @@ from uuid import UUID
 from fastapi import APIRouter, Response, status
 
 from alcedo import Created, Inject, NoContent
-from example.application.models import (
-    AssignStudent,
-    DormitoryCreate,
-    DormitoryUpdate,
-    DormitoryView,
-    StudentCreate,
-    StudentUpdate,
-    StudentView,
+from example.application.commands import (
+    AssignStudentCommand,
+    DormitoryCreateCommand,
+    DormitoryUpdateCommand,
+    StudentCreateCommand,
+    StudentUpdateCommand,
 )
+from example.application.dtos import DormitoryDto, StudentDto
 from example.application.services import (
     DormitoryApplicationService,
     StudentApplicationService,
@@ -20,12 +19,12 @@ from example.application.services import (
 router = APIRouter()
 
 
-@router.get("/students", response_model=list[StudentView])
+@router.get("/students", response_model=list[StudentDto])
 async def list_students(service: Inject[StudentApplicationService]):
     return await service.list()
 
 
-@router.get("/students/{student_id}", response_model=StudentView)
+@router.get("/students/{student_id}", response_model=StudentDto)
 async def get_student(
     student_id: UUID,
     service: Inject[StudentApplicationService],
@@ -35,7 +34,7 @@ async def get_student(
 
 @router.post("/students", status_code=status.HTTP_201_CREATED)
 async def create_student(
-    command: StudentCreate,
+    command: StudentCreateCommand,
     service: Inject[StudentApplicationService],
 ) -> UUID:
     return Created(await service.create(command))
@@ -44,7 +43,7 @@ async def create_student(
 @router.put("/students/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def update_student(
     student_id: UUID,
-    command: StudentUpdate,
+    command: StudentUpdateCommand,
     service: Inject[StudentApplicationService],
 ) -> Response:
     await service.update(student_id, command)
@@ -60,12 +59,12 @@ async def delete_student(
     return NoContent()
 
 
-@router.get("/dormitories", response_model=list[DormitoryView])
+@router.get("/dormitories", response_model=list[DormitoryDto])
 async def list_dormitories(service: Inject[DormitoryApplicationService]):
     return await service.list()
 
 
-@router.get("/dormitories/{dormitory_id}", response_model=DormitoryView)
+@router.get("/dormitories/{dormitory_id}", response_model=DormitoryDto)
 async def get_dormitory(
     dormitory_id: UUID,
     service: Inject[DormitoryApplicationService],
@@ -75,7 +74,7 @@ async def get_dormitory(
 
 @router.post("/dormitories", status_code=status.HTTP_201_CREATED)
 async def create_dormitory(
-    command: DormitoryCreate,
+    command: DormitoryCreateCommand,
     service: Inject[DormitoryApplicationService],
 ) -> UUID:
     return Created(await service.create(command))
@@ -84,7 +83,7 @@ async def create_dormitory(
 @router.put("/dormitories/{dormitory_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def update_dormitory(
     dormitory_id: UUID,
-    command: DormitoryUpdate,
+    command: DormitoryUpdateCommand,
     service: Inject[DormitoryApplicationService],
 ) -> Response:
     await service.update(dormitory_id, command)
@@ -107,7 +106,7 @@ async def delete_dormitory(
 )
 async def assign_student(
     dormitory_id: UUID,
-    command: AssignStudent,
+    command: AssignStudentCommand,
     service: Inject[DormitoryApplicationService],
 ) -> Response:
     await service.assign_student(dormitory_id, command.student_id)

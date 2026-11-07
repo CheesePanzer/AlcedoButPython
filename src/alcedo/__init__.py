@@ -1,3 +1,4 @@
+from alcedo.application import CommandBase, DtoBase
 from alcedo.configuration import (
     Configuration,
     DatabaseOptions,
@@ -46,8 +47,10 @@ __all__ = [
     "AggregateRoot",
     "AlcedoError",
     "AlcedoRuntime",
+    "CommandBase",
     "Configuration",
     "DatabaseOptions",
+    "DtoBase",
     "Entity",
     "BadRequestError",
     "ConflictError",

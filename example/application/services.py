@@ -2,14 +2,13 @@ from uuid import UUID
 
 from alcedo import UnitOfWork, transactional
 
-from example.application.models import (
-    DormitoryCreate,
-    DormitoryUpdate,
-    DormitoryView,
-    StudentCreate,
-    StudentUpdate,
-    StudentView,
+from example.application.commands import (
+    DormitoryCreateCommand,
+    DormitoryUpdateCommand,
+    StudentCreateCommand,
+    StudentUpdateCommand,
 )
+from example.application.dtos import DormitoryDto, StudentDto
 from example.domain.dormitory import Dormitory
 from example.domain.exceptions import DomainRuleViolation, ResourceNotFound
 from example.domain.repositories import DormitoryRepository, StudentRepository
@@ -21,18 +20,18 @@ class StudentApplicationService:
         self.repository = repository
         self.uow = uow
 
-    async def get(self, student_id: UUID) -> StudentView:
+    async def get(self, student_id: UUID) -> StudentDto:
         student = await self.repository.get(student_id)
         if student is None:
             raise ResourceNotFound("student", student_id)
-        return StudentView.model_validate(student)
+        return StudentDto.model_validate(student)
 
-    async def list(self) -> list[StudentView]:
+    async def list(self) -> list[StudentDto]:
         students = await self.repository.list()
-        return [StudentView.model_validate(student) for student in students]
+        return [StudentDto.model_validate(student) for student in students]
 
     @transactional
-    async def create(self, command: StudentCreate) -> UUID:
+    async def create(self, command: StudentCreateCommand) -> UUID:
         if await self.repository.exists_by_number(command.student_no):
             raise DomainRuleViolation("student number already exists")
         student = Student.create(command.student_no, command.name)
@@ -40,7 +39,7 @@ class StudentApplicationService:
         return student.id
 
     @transactional
-    async def update(self, student_id: UUID, command: StudentUpdate) -> None:
+    async def update(self, student_id: UUID, command: StudentUpdateCommand) -> None:
         student = await self.repository.get(student_id)
         if student is None:
             raise ResourceNotFound("student", student_id)
@@ -66,8 +65,8 @@ class DormitoryApplicationService:
         self.uow = uow
 
     @staticmethod
-    def _view(dormitory: Dormitory) -> DormitoryView:
-        return DormitoryView(
+    def _view(dormitory: Dormitory) -> DormitoryDto:
+        return DormitoryDto(
             id=dormitory.id,
             code=dormitory.code,
             capacity=dormitory.capacity,
@@ -75,24 +74,28 @@ class DormitoryApplicationService:
             version=dormitory.version,
         )
 
-    async def get(self, dormitory_id: UUID) -> DormitoryView:
+    async def get(self, dormitory_id: UUID) -> DormitoryDto:
         dormitory = await self.repository.get(dormitory_id)
         if dormitory is None:
             raise ResourceNotFound("dormitory", dormitory_id)
         return self._view(dormitory)
 
-    async def list(self) -> list[DormitoryView]:
+    async def list(self) -> list[DormitoryDto]:
         dormitories = await self.repository.list()
         return [self._view(dormitory) for dormitory in dormitories]
 
     @transactional
-    async def create(self, command: DormitoryCreate) -> UUID:
+    async def create(self, command: DormitoryCreateCommand) -> UUID:
         dormitory = Dormitory.create(command.code, command.capacity)
         self.repository.add(dormitory)
         return dormitory.id
 
     @transactional
-    async def update(self, dormitory_id: UUID, command: DormitoryUpdate) -> None:
+    async def update(
+        self,
+        dormitory_id: UUID,
+        command: DormitoryUpdateCommand,
+    ) -> None:
         dormitory = await self.repository.get_for_update(dormitory_id)
         if dormitory is None:
             raise ResourceNotFound("dormitory", dormitory_id)

@@ -356,6 +356,37 @@ await repository.remove(entity)
 
 Repository 不得调用 `commit()`。事务提交和回滚统一由 Unit of Work 控制。
 
+## DTO 与 Command
+
+Application 层的输入和输出应使用显式类型：
+
+- `CommandBase` 标记应用用例输入
+- `DtoBase` 标记跨 Application 边界返回的数据
+
+```python
+from alcedo import CommandBase, DtoBase
+from pydantic import Field
+
+
+class AccountCreateCommand(CommandBase):
+    name: str = Field(max_length=100)
+
+
+class AccountDto(DtoBase):
+    id: UUID
+    name: str
+    version: int
+```
+
+`CommandBase` 默认拒绝未声明字段，避免调用方传入的数据被静默忽略。
+`DtoBase` 默认启用 `from_attributes`，可以从领域实体或 ORM 实体转换：
+
+```python
+dto = AccountDto.model_validate(account)
+```
+
+Command 不应作为返回模型，DTO 也不应承担修改用例的输入职责。
+
 ## Unit of Work
 
 Application Service 通过构造函数接收 `UnitOfWork`，并公开为 `uow` 属性：
