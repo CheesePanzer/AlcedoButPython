@@ -356,6 +356,74 @@ await repository.remove(entity)
 
 Repository 不得调用 `commit()`。事务提交和回滚统一由 Unit of Work 控制。
 
+## 状态机
+
+领域层提供轻量状态流和行为守卫。状态、Trigger 和 Action 推荐使用
+`StrEnum`：
+
+```python
+from enum import StrEnum
+
+from alcedo import StateActionGuard, StateFlow, StateTransition
+
+
+class JobState(StrEnum):
+    CREATED = "created"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class JobTrigger(StrEnum):
+    START = "start"
+    COMPLETE = "complete"
+    FAIL = "fail"
+
+
+flow = StateFlow(
+    (
+        StateTransition(JobState.CREATED, JobTrigger.START, JobState.RUNNING),
+        StateTransition(JobState.RUNNING, JobTrigger.COMPLETE, JobState.COMPLETED),
+        StateTransition(JobState.RUNNING, JobTrigger.FAIL, JobState.FAILED),
+    )
+)
+```
+
+在聚合方法中执行迁移：
+
+```python
+def complete(self) -> None:
+    self.state = flow.transition(self.state, JobTrigger.COMPLETE)
+```
+
+可用操作：
+
+```python
+flow.can_transition(state, trigger)
+flow.get_next_state(state, trigger)
+flow.transition(state, trigger)
+flow.allowed_triggers(state)
+```
+
+非法迁移会抛出 `InvalidStateTransitionError`。相同状态和 Trigger 的重复规则
+会在创建 `StateFlow` 时直接报错。
+
+Action 用于限制不改变状态的领域行为：
+
+```python
+guard = StateActionGuard(
+    {
+        JobAction.CANCEL: {JobState.CREATED, JobState.RUNNING},
+        JobAction.RATE: {JobState.COMPLETED},
+    }
+)
+
+guard.ensure_allowed(self.state, JobAction.RATE)
+```
+
+行为不允许时会抛出 `StateActionNotAllowedError`。状态机只负责领域规则，不负责
+任务调度、持久化或工作流恢复。
+
 ## DTO 与 Command
 
 Application 层的输入和输出应使用显式类型：

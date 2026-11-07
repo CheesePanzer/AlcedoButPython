@@ -373,6 +373,75 @@ row-level shared lock.
 Repositories must not call `commit()`. Unit of Work exclusively controls commits
 and rollbacks.
 
+## State Machine
+
+The domain package provides a lightweight state flow and action guard. Use
+`StrEnum` for states, triggers, and actions:
+
+```python
+from enum import StrEnum
+
+from alcedo import StateActionGuard, StateFlow, StateTransition
+
+
+class JobState(StrEnum):
+    CREATED = "created"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class JobTrigger(StrEnum):
+    START = "start"
+    COMPLETE = "complete"
+    FAIL = "fail"
+
+
+flow = StateFlow(
+    (
+        StateTransition(JobState.CREATED, JobTrigger.START, JobState.RUNNING),
+        StateTransition(JobState.RUNNING, JobTrigger.COMPLETE, JobState.COMPLETED),
+        StateTransition(JobState.RUNNING, JobTrigger.FAIL, JobState.FAILED),
+    )
+)
+```
+
+Transition inside an aggregate method:
+
+```python
+def complete(self) -> None:
+    self.state = flow.transition(self.state, JobTrigger.COMPLETE)
+```
+
+Available operations:
+
+```python
+flow.can_transition(state, trigger)
+flow.get_next_state(state, trigger)
+flow.transition(state, trigger)
+flow.allowed_triggers(state)
+```
+
+An invalid transition raises `InvalidStateTransitionError`. Duplicate rules for
+the same state and trigger are rejected when the `StateFlow` is created.
+
+Actions restrict domain behavior that does not change state:
+
+```python
+guard = StateActionGuard(
+    {
+        JobAction.CANCEL: {JobState.CREATED, JobState.RUNNING},
+        JobAction.RATE: {JobState.COMPLETED},
+    }
+)
+
+guard.ensure_allowed(self.state, JobAction.RATE)
+```
+
+A disallowed action raises `StateActionNotAllowedError`. The state machine only
+expresses domain rules; it does not schedule tasks, persist workflow execution,
+or provide workflow recovery.
+
 ## DTOs and Commands
 
 Use explicit types for application input and output:

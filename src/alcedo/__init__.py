@@ -7,7 +7,15 @@ from alcedo.configuration import (
     OptionsCenter,
     PresentationOptions,
 )
-from alcedo.domain import AggregateRoot, Entity
+from alcedo.domain import (
+    AggregateRoot,
+    Entity,
+    InvalidStateTransitionError,
+    StateActionGuard,
+    StateActionNotAllowedError,
+    StateFlow,
+    StateTransition,
+)
 from alcedo.di import (
     InvalidLifetimeError,
     ServiceCollection,
@@ -58,6 +66,7 @@ __all__ = [
     "IsolationLevel",
     "Inject",
     "InvalidLifetimeError",
+    "InvalidStateTransitionError",
     "Created",
     "NoContent",
     "NotFound",
@@ -72,6 +81,10 @@ __all__ = [
     "ServiceLifetime",
     "ServiceProvider",
     "ServiceScopeFactory",
+    "StateActionGuard",
+    "StateActionNotAllowedError",
+    "StateFlow",
+    "StateTransition",
     "alcedo_scope",
     "SqlAlchemyRepository",
     "SqlAlchemyUnitOfWork",
