@@ -1,5 +1,5 @@
 from datetime import datetime
-from uuid import UUID, uuid4
+from uuid import UUID, uuid7
 
 from sqlalchemy import DateTime, Integer, Uuid
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
@@ -12,10 +12,10 @@ class Entity(DeclarativeBase):
 
     __abstract__ = True
 
-    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid7)
 
     def __init__(self, **kwargs: object) -> None:
-        kwargs.setdefault("id", uuid4())
+        kwargs.setdefault("id", uuid7())
         for name, value in kwargs.items():
             if not hasattr(type(self), name):
                 raise TypeError(f"{name!r} is not a mapped attribute of {type(self).__name__}")

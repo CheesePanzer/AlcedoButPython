@@ -32,7 +32,7 @@ FastAPI Controller
 python -m pip install -e ".[dev]"
 ```
 
-Alcedo 要求 Python 3.12 或更高版本，并使用 SQLAlchemy 异步接口。
+Alcedo 要求 Python 3.14 或更高版本，并使用 SQLAlchemy 异步接口。
 
 ## 初始化
 
@@ -298,7 +298,8 @@ class Account(AggregateRoot):
         self.name = name
 ```
 
-`Entity` 提供 UUID 主键。`AggregateRoot` 额外提供：
+`Entity` 在应用侧使用标准库 `uuid7()` 生成具有时间顺序特征的 UUID 主键，
+实体构造完成时即可获得 ID。`AggregateRoot` 额外提供：
 
 - `version`：SQLAlchemy 乐观并发版本列
 - `created_at`

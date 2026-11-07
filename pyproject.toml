@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "alcedo-python"
 version = "0.1.0"
 description = "A small DDD and SQLAlchemy unit-of-work foundation for FastAPI"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     "aiosqlite>=0.20",
     "alembic>=1.14",

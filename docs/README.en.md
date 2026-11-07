@@ -33,7 +33,7 @@ Install from the project root:
 python -m pip install -e ".[dev]"
 ```
 
-Alcedo requires Python 3.12 or later and uses SQLAlchemy's asynchronous API.
+Alcedo requires Python 3.14 or later and uses SQLAlchemy's asynchronous API.
 
 ## Initialization
 
@@ -307,7 +307,9 @@ class Account(AggregateRoot):
         self.name = name
 ```
 
-`Entity` provides a UUID primary key. `AggregateRoot` additionally provides:
+`Entity` generates a time-ordered UUID primary key in the application with the
+standard-library `uuid7()`, so the ID is available immediately after
+construction. `AggregateRoot` additionally provides:
 
 - `version`: SQLAlchemy optimistic-concurrency column
 - `created_at`
