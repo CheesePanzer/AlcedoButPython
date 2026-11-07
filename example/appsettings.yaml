@@ -1,0 +1,10 @@
+database:
+  url: sqlite+aiosqlite:///./dormitory.db
+  echo: false
+  create_schema: true
+
+presentation:
+  display_sensitive_errors: false
+
+dormitory:
+  default_capacity: 4
